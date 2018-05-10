@@ -1,0 +1,69 @@
+app:
+  build: ../../
+  dockerfile: ci/release/Dockerfile
+  links:
+    - db
+  volumes_from:
+    - webroot
+  environment:
+    DJANGO_SETTINGS_MODULE: apiissuestracker.settings.release
+    MYSQL_HOST: db
+    MYSQL_DATABASE: issuesdb
+    MYSQL_USER: tracker
+    MYSQL_PORT: 3306
+    MYSQL_PASSWORD: password
+  command:
+    - uwsgi
+    - "--socket /var/www/apiissuestracker/apiissuestracker.sock"
+    - "--chmod-socket=666"
+    - "--module apiissuestracker.wsgi"
+    - "--master"
+    - "--die-on-term"
+
+test:
+  image: abeego/issues-tracker-acceptance
+  links:
+    - nginx
+  environment:
+    URL: http://nginx:8000
+    JUNIT_REPORT_PATH:  /reports/acceptance.xml
+    JUNIT_REPORT_STACK: 1
+  command: --reporter mocha-jenkins-reporter
+
+nginx:
+  image: nginx
+  links:
+    - app
+  volumes:
+    - ./apiissuestracker.conf:/etc/nginx/conf.d/apiissuestracker.conf
+  ports:
+    - "8000:8000"
+  volumes_from:
+    - webroot
+
+webroot:
+  build: ../../
+  dockerfile: ci/release/Dockerfile
+  volumes:
+    - /var/www/apiissuestracker
+  entrypoint: "true"
+
+db:
+  image: mysql:5.6
+  expose:
+    - "3306"
+  environment:
+    MYSQL_DATABASE: issuesdb
+    MYSQL_USER: tracker
+    MYSQL_PASSWORD: password
+    MYSQL_ROOT_PASSWORD: password
+
+agent:
+  image: abeego/issues-tracker-ansible
+  volumes:
+    - ../ansible/probe.yml:/ansible/site.yml
+  links:
+    - db
+  environment:
+    PROBE_HOST: "db"
+    PROBE_PORT: "3306"
