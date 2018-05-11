@@ -35,13 +35,12 @@ services:
 
   agent:
     image: abeego/issues-tracker-ansible
-    volumes:
-      - ../ansible/probe.yml:/ansible/site.yml
     links:
       - db
     environment:
       PROBE_HOST: "db"
       PROBE_PORT: "3306"
+    command: ["probe.yml"]
 
   db:
     image: mysql:5.6
