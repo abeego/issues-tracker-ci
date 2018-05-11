@@ -23,7 +23,7 @@ CHECK := @bash -c '\
 	if [[ $(INSPECT) -ne 0 ]]; \
 	then exit $(INSPECT); fi' VALUE
 
-DOCKER_REGISTRY ?= docker.io
+DOCKER_REGISTRY ?= https://index.docker.io/v1/
 DOCKER_REGISTRY_AUTH ?=
 
 .PHONY: test build release clean tag buildtag login logout publish
