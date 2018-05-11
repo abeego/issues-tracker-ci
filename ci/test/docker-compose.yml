@@ -1,50 +1,52 @@
-test:
-  build: ../../
-  dockerfile: ci/test/Dockerfile
-  volumes_from:
-    - cache
-  links:
-    - db
-  environment:
-    DJANGO_SETTINGS_MODULE: apiissuestracker.settings.test
-    MYSQL_HOST: db
-    MYSQL_USER: root
-    MYSQL_PORT: 3306
-    MYSQL_PASSWORD: password
-    TEST_OUTPUT_DIR: /reports
+version: '2'
 
-builder:
-  build: ../../
-  dockerfile: ci/test/Dockerfile
-  volumes:
-    - ../../target:/wheelhouse
-  volumes_from:
-    - cache
-  entrypoint: "entrypoint.sh"
-  command: ["pip", "wheel", "--no-index", "-f /build", "."]
+volumes:
+  build:
+    driver: local
+  cache:
+    external: true
 
-agent:
-  image: abeego/issues-tracker-ansible
-  volumes:
-    - ../ansible/probe.yml:/ansible/site.yml
-  links:
-    - db
-  environment:
-    PROBE_HOST: "db"
-    PROBE_PORT: "3306"
+services:
+  test:
+    build:
+      context: ../../
+      dockerfile: ci/test/Dockerfile
+    volumes:
+      - cache:/cache
+      - build:/build
+    links:
+      - db
+    environment:
+      DJANGO_SETTINGS_MODULE: apiissuestracker.settings.test
+      MYSQL_HOST: db
+      MYSQL_USER: root
+      MYSQL_PORT: 3306
+      MYSQL_PASSWORD: password
+      TEST_OUTPUT_DIR: /reports
 
-db:
-  image: mysql:5.6
-  hostname: db
-  expose:
-    - "3306"
-  environment:
-    MYSQL_ROOT_PASSWORD: password
+  builder:
+    build:
+      context: ../../
+      dockerfile: ci/test/Dockerfile
+    volumes:
+      - build:/build
+    entrypoint: "entrypoint.sh"
+    command: ["pip", "wheel", "--no-index", "-f /build", "."]
 
-cache:
-  build: ../../
-  dockerfile: ci/test/Dockerfile
-  volumes:
-    - /tmp/cache:/cache
-    - /build
-  entrypoint: "true"
+  agent:
+    image: abeego/issues-tracker-ansible
+    volumes:
+      - ../ansible/probe.yml:/ansible/site.yml
+    links:
+      - db
+    environment:
+      PROBE_HOST: "db"
+      PROBE_PORT: "3306"
+
+  db:
+    image: mysql:5.6
+    hostname: db
+    expose:
+      - "3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: password

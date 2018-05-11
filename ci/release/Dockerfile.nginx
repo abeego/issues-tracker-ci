@@ -1,0 +1,3 @@
+FROM nginx
+
+COPY ./apiissuestracker.conf /etc/nginx/conf.d/apiissuestracker.conf
