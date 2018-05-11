@@ -61,8 +61,6 @@ services:
 
   agent:
     image: abeego/issues-tracker-ansible
-    volumes:
-      - ../ansible/probe.yml:/ansible/site.yml
     links:
       - db
     environment:
