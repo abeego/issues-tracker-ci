@@ -1,5 +1,5 @@
 node {
-    git 'https://github.com/abeego/issues-tracker-ci.git'
+    checkout scm
 
     try {
         stage 'Run unit/integration tests'
